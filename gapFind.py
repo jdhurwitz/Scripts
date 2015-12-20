@@ -1,12 +1,19 @@
 import glob
 import os
+import time
+import multiprocessing as mp
 
+multithread = 1
+num_processes = 0
 CWD = os.getcwd()
 WRITEDIR = os.getcwd()+"/Gap Calculations/"
 if not os.path.exists(WRITEDIR):
 	os.makedirs(WRITEDIR)
 
 os.chdir(CWD+"/SP500")
+
+output = mp.Queue()
+
 
 sorted_names = open("sorted.txt" ,'r')
 counter = 0;
@@ -21,8 +28,7 @@ counter = 0;
 month_to_day = {'01':31, '02':28, '03':31, '04':30, '05':31, '06':30, '07':31, '08':31, '09':30, '10':31, '11':30, '12':31}
 
 
-
-for ticker in sorted_names:
+def calculateGaps(ticker):
    file = open(ticker.rstrip()+'.csv', 'r')
    file.readline() #junk first line
 
@@ -58,5 +64,20 @@ for ticker in sorted_names:
    gfile.close()
    file.close()
 
-sorted_names.close()   
+if(multithread):
+	processes = [mp.Process(target=calculateGaps, args=(ticker,)) for ticker in sorted_names]
+
+	for p in processes:
+		p.start()
+		num_processes += 1
+
+	for p in processes:
+		p.join()
+else:
+	for ticker in sorted_names:
+		calculateGaps(ticker)
+
+
+sorted_names.close()
+print("Multithreading: "+str(multithread), "Num processes: " +str(num_processes))
 
