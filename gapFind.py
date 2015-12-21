@@ -3,8 +3,11 @@ import os
 import time
 import multiprocessing as mp
 
+GAPSIZE = 3
+
 multithread = 1
 num_processes = 0
+
 CWD = os.getcwd()
 WRITEDIR = os.getcwd()+"/Gap Calculations/"
 if not os.path.exists(WRITEDIR):
@@ -27,15 +30,16 @@ counter = 0;
 #String to int to avoid issue with octal leading zeroes
 month_to_day = {'01':31, '02':28, '03':31, '04':30, '05':31, '06':30, '07':31, '08':31, '09':30, '10':31, '11':30, '12':31}
 
-
 def calculateGaps(ticker):
+
    file = open(ticker.rstrip()+'.csv', 'r')
    file.readline() #junk first line
 
    day_prev = 0
    month_prev = 0
    gaplength = 0
-
+   total_missing = 0
+   
    complete_name = os.path.join(WRITEDIR, ticker.rstrip()+".txt")
    gfile = open(complete_name, 'w')
    for line in file:
@@ -51,7 +55,10 @@ def calculateGaps(ticker):
 			gaplength = (int(day) - int(day_prev))-1
 		else:
 			gaplength = 0
-	if(gaplength > 2):
+	if(gaplength >= GAPSIZE):
+		total_missing += gaplength
+		print(total_missing)
+
 		gap_output = (month,day,year, "gap length is: " + str(gaplength))
 		print(gap_output)
 		gfile.write(str(gap_output)+"\n")
@@ -59,8 +66,10 @@ def calculateGaps(ticker):
 
 	day_prev = day
 	month_prev = month
-
-
+	
+   #print(total_missing)
+   #gfile.write("Total days missing: " + str(total_missing))
+   gfile.write(str(total_missing))
    gfile.close()
    file.close()
 
@@ -80,4 +89,20 @@ else:
 
 sorted_names.close()
 print("Multithreading: "+str(multithread), "Num processes: " +str(num_processes))
+
+os.chdir(WRITEDIR)
+FILENAME = 'concatenated.txt'
+concat = open(FILENAME, 'w')
+for i in os.listdir(os.getcwd()):
+	if(i == FILENAME):
+		pass
+	else:
+		cur_file = open(i, 'r')
+		for line in cur_file:
+			pass
+		last = line
+	
+		concat.write(os.path.splitext(i)[0]+": "+str(last)+"\n")
+		cur_file.close()
+concat.close()
 
